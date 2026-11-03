@@ -15,6 +15,6 @@
   "claims_excluded": ["prices", "testimonials", "ratings", "awards", "guarantees", "years of operation", "real staff portraits", "real workshop photographs"],
   "business_activity_confirmed": false,
   "contact_delivery_tested": false,
-  "imagery": "AI-generated concept car, original code-native diagrams; see assets/image-provenance.json",
+  "imagery": "Procedural unbranded 3D car created in JavaScript geometry/materials with local Three.js; original inline SVG fallback and technical diagrams. No displayed raster car, texture, video or downloaded 3D model.",
   "hosting_target": "GitHub Pages / tema-git/servis-yug-auto-design-demo"
 }

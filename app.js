@@ -40,6 +40,7 @@
   const tabs = $$('.service-tab');
   const panel = $('#service-panel');
   const serviceSelect = $('#service-choice');
+  let selectedService = serviceSelect.value;
   function selectService(id, focus = false) {
     const item = config.services.find(service => service.id === id);
     if (!item) return;
@@ -52,12 +53,14 @@
     });
     panel.setAttribute('aria-labelledby', `tab-${id}`);
     $('#service-title').textContent = item.title;
+    $('#service-short').textContent = item.short;
     $('#service-description').textContent = item.detail;
     $('#service-tags').replaceChildren(...item.tags.map(tag => {
       const el = document.createElement('span'); el.textContent = tag; return el;
     }));
     $('.mechanism-scene').dataset.zone = item.zone;
-    serviceSelect.value = id;
+    selectedService = id;
+    serviceSelect.value = selectedService;
   }
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => selectService(tab.dataset.service));
@@ -106,11 +109,23 @@
   }
   function startGame() {
     clearTimeout(roundTimer);
+    roundTimer = 0;
     roundIndex = 0; locked = false;
     $('#game-intro').hidden = true;
     $('#game-finish').hidden = true;
     $('#game-active').hidden = false;
     scoreUpdate(0); showRound(true);
+  }
+  function finishRoundTransition(moveFocus = true) {
+    roundTimer = 0;
+    if (!locked) return;
+    if (roundIndex === rounds.length) {
+      $('#game-active').hidden = true;
+      $('#game-finish').hidden = false;
+      $('#game-finish h3').tabIndex = -1;
+      if (moveFocus) $('#game-finish h3').focus({ preventScroll: true });
+      locked = false;
+    } else showRound(moveFocus);
   }
   $('#game-start').addEventListener('click', startGame);
   $('#game-restart').addEventListener('click', startGame);
@@ -131,15 +146,7 @@
     $('#game-feedback').classList.remove('is-error');
     $('#game-feedback').textContent = round.feedback;
     roundIndex += 1; scoreUpdate(roundIndex);
-    roundTimer = window.setTimeout(() => {
-      if (roundIndex === rounds.length) {
-        $('#game-active').hidden = true;
-        $('#game-finish').hidden = false;
-        $('#game-finish h3').tabIndex = -1;
-        $('#game-finish h3').focus({ preventScroll: true });
-        locked = false;
-      } else showRound(true);
-    }, 950);
+    roundTimer = window.setTimeout(finishRoundTransition, 950);
   }));
 
   const form = $('#booking-form');
@@ -161,8 +168,9 @@
       $('#name-error').textContent = 'Введите имя — не меньше двух букв.';
       firstInvalid = nameInput;
     }
-    const digits = phoneInput.value.replace(/\D/g, '');
-    const validPhone = /^\d{10}$/.test(digits) || /^[78]\d{10}$/.test(digits);
+    const phone = phoneInput.value.trim();
+    const digits = phone.replace(/\D/g, '');
+    const validPhone = /^\+?[\d\s().-]+$/.test(phone) && (/^\d{10}$/.test(digits) || /^[78]\d{10}$/.test(digits));
     if (!validPhone || /^([0-9])\1+$/.test(digits)) {
       phoneInput.setAttribute('aria-invalid', 'true');
       $('#phone-error').textContent = 'Введите российский номер: 10 цифр или 11 с 7/8 в начале.';
@@ -176,12 +184,18 @@
     $('#form-success').focus({ preventScroll: true });
   });
   $('#booking-submit').disabled = false;
-  $('#form-reset').addEventListener('click', () => {
+  function resetForm(focus = true) {
     $('#form-success').hidden = true;
     form.hidden = false;
     form.reset();
+    serviceSelect.value = selectedService;
     clearFieldError(nameInput, 'name-error'); clearFieldError(phoneInput, 'phone-error');
-    nameInput.focus({ preventScroll: true });
+    if (focus) nameInput.focus({ preventScroll: true });
+  }
+  $('#form-reset').addEventListener('click', () => resetForm());
+  $('#service-book').addEventListener('click', () => {
+    if (form.hidden) resetForm(false);
+    serviceSelect.value = selectedService;
   });
 
   const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -189,28 +203,43 @@
   let userMotion = null;
   const scenes = $$('[data-motion]');
   const visibleScenes = new Set();
+  const pointerStates = new Map();
+  const assembly = $('.assembly');
+  const assemblySection = $('.approach-section');
+  const hero = $('.hero');
+  const clamp = value => Math.max(0, Math.min(1, value));
   let motionEnabled = !motionMedia.matches;
   let frame = 0;
   function updateMotionPreference() {
-    motionEnabled = userMotion === null ? !motionMedia.matches : userMotion;
+    motionEnabled = !motionMedia.matches && userMotion !== false;
     document.documentElement.toggleAttribute('data-motion-off', !motionEnabled);
     motionButton.setAttribute('aria-pressed', String(motionEnabled));
-    motionButton.textContent = `Анимация: ${motionEnabled ? 'вкл' : 'выкл'}`;
+    motionButton.textContent = motionMedia.matches ? 'Анимация: снижена' : `Анимация: ${motionEnabled ? 'вкл' : 'выкл'}`;
+    motionButton.disabled = motionMedia.matches;
     scenes.forEach(scene => {
       scene.style.setProperty('--px', 0); scene.style.setProperty('--py', 0);
       scene.style.setProperty('--progress', motionEnabled ? 0 : 1);
+      scene.style.setProperty('--lit', 0);
     });
+    assemblySection.style.setProperty('--assembly-progress', motionEnabled ? 0 : 1);
+    hero.style.setProperty('--hero-progress', 0);
     scheduleScroll();
   }
   function updateScroll() {
     frame = 0;
     if (!motionEnabled) return;
     const height = window.innerHeight;
-    visibleScenes.forEach(scene => {
-      const top = scene.getBoundingClientRect().top;
-      const progress = Math.max(0, Math.min(1, (height - top) / (height * .95)));
-      scene.style.setProperty('--progress', progress.toFixed(4));
+    // Read geometry together before writing styles; scrolling invalidates viewport bounds.
+    const readings = [...visibleScenes].map(scene => ({ scene, box: scene.getBoundingClientRect() }));
+    const assemblyTop = visibleScenes.has(assemblySection) ? assembly.getBoundingClientRect().top : null;
+    readings.forEach(({ scene, box }) => {
+      const state = pointerStates.get(scene);
+      if (state && state.box) state.box = box;
+      scene.style.setProperty('--progress', clamp((height - box.top) / (height * .95)).toFixed(4));
+      if (scene === hero) scene.style.setProperty('--hero-progress', clamp(-box.top / (box.height * .8)).toFixed(4));
+      if (state && state.box) state.schedule();
     });
+    if (assemblyTop !== null) assemblySection.style.setProperty('--assembly-progress', clamp((height - assemblyTop) / (height * .78)).toFixed(4));
   }
   function scheduleScroll() { if (!frame) frame = requestAnimationFrame(updateScroll); }
   const observer = new IntersectionObserver(entries => {
@@ -222,33 +251,37 @@
   }, { rootMargin: '100px 0px 100px 0px' });
   scenes.forEach(scene => {
     observer.observe(scene);
-    let box = null;
-    let pointerFrame = 0;
-    let pointerX = 0, pointerY = 0;
+    const state = { box: null, frame: 0, x: 0, y: 0, schedule: () => {
+      if (!state.frame && motionEnabled) state.frame = requestAnimationFrame(paintPointer);
+    } };
+    pointerStates.set(scene, state);
     function paintPointer() {
-      pointerFrame = 0;
-      if (!motionEnabled || !box) return;
-      const x = Math.max(0, Math.min(1, (pointerX - box.left) / box.width));
-      const y = Math.max(0, Math.min(1, (pointerY - box.top) / box.height));
+      state.frame = 0;
+      if (!motionEnabled || !state.box) return;
+      const x = clamp((state.x - state.box.left) / state.box.width);
+      const y = clamp((state.y - state.box.top) / state.box.height);
       scene.style.setProperty('--px', ((x - .5) * 2).toFixed(3));
       scene.style.setProperty('--py', ((y - .5) * 2).toFixed(3));
       scene.style.setProperty('--pointer-x', `${x * 100}%`);
       scene.style.setProperty('--pointer-y', `${y * 100}%`);
       scene.style.setProperty('--lit', '1');
     }
-    scene.addEventListener('pointerenter', () => { box = scene.getBoundingClientRect(); });
+    scene.addEventListener('pointerenter', event => {
+      state.box = scene.getBoundingClientRect(); state.x = event.clientX; state.y = event.clientY;
+      state.schedule();
+    });
     scene.addEventListener('pointermove', event => {
       if (!motionEnabled) return;
-      box ||= scene.getBoundingClientRect();
-      pointerX = event.clientX; pointerY = event.clientY;
-      if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);
+      state.box ||= scene.getBoundingClientRect();
+      state.x = event.clientX; state.y = event.clientY;
+      state.schedule();
     }, { passive: true });
     scene.addEventListener('pointerdown', event => {
-      box = scene.getBoundingClientRect(); pointerX = event.clientX; pointerY = event.clientY;
-      if (!pointerFrame) pointerFrame = requestAnimationFrame(paintPointer);
+      state.box = scene.getBoundingClientRect(); state.x = event.clientX; state.y = event.clientY;
+      state.schedule();
     }, { passive: true });
     scene.addEventListener('pointerleave', () => {
-      cancelAnimationFrame(pointerFrame); pointerFrame = 0; box = null;
+      cancelAnimationFrame(state.frame); state.frame = 0; state.box = null;
       scene.style.setProperty('--px', 0); scene.style.setProperty('--py', 0); scene.style.setProperty('--lit', 0);
     });
   });
@@ -256,7 +289,15 @@
   motionMedia.addEventListener('change', updateMotionPreference);
   window.addEventListener('scroll', scheduleScroll, { passive: true });
   window.addEventListener('resize', () => { if (window.innerWidth > 900) closeMenu(); scheduleScroll(); }, { passive: true });
-  window.addEventListener('pageshow', scheduleScroll);
-  window.addEventListener('pagehide', () => { clearTimeout(roundTimer); cancelAnimationFrame(frame); });
+  window.addEventListener('pageshow', () => {
+    // A cached page may return during the 950 ms answer transition.
+    if (locked && !roundTimer) finishRoundTransition(false);
+    scheduleScroll();
+  });
+  window.addEventListener('pagehide', () => {
+    clearTimeout(roundTimer); roundTimer = 0;
+    cancelAnimationFrame(frame); frame = 0;
+    pointerStates.forEach(state => { cancelAnimationFrame(state.frame); state.frame = 0; state.box = null; });
+  });
   updateMotionPreference();
 })();
