@@ -1,0 +1,13 @@
+{
+  "created_on": "2026-11-04",
+  "method": "Built-in image_gen",
+  "asset": "hero-car.webp",
+  "width": 1774,
+  "height": 887,
+  "transparent": true,
+  "conceptual_image": true,
+  "not_documentary_company_photo": true,
+  "prompt": "Use case: stylized-concept. Asset type: premium automotive repair website hero, isolated large 3D product visualization with real transparent alpha background. Subject: an unbranded sophisticated graphite-silver contemporary European sports touring coupe, front three-quarter viewpoint pointing left, slightly elevated view, four wheels correctly positioned, strong beautiful long sweeping body, flawless proportions and crisp studio reflections. Below the car, an elegant physically plausible exploded mechanical layer: a single exposed ventilated brake rotor beside the front wheel and a small suspension coil assembly spaced slightly downward, composed as a precision workshop visualization, restrained burnt-orange reflection accents on metal. Car itself complete, not broken; mechanical items are separate diagram-like objects. Composition: very wide horizontal composition, car fills 90% width with ample transparent margins, entire car visible. High-end glossy automotive editorial CGI, meticulously rendered metal, rubber and glass, soft shadow under car only, no environment, no floor rectangle. Lighting: large softbox pearl highlights with warm side rim, dark windows. No text, logos, number plate text, watermarks, humans, tools or UI, no border. Genuinely transparent background. This is conceptual imagery, not an actual company premises photo.",
+  "format_processing": "PNG converted to WebP; alpha preserved; no compositional alteration.",
+  "original_filename": "exec-59afb9f7-239b-4c74-9024-e3a58aed30b6.png"
+}
