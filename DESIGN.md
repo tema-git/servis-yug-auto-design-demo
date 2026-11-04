@@ -8,11 +8,11 @@ The visual idea is an illuminated automotive studio: a procedural three-dimensio
 
 ## Plan, considered before implementation
 
-The first idea, a dark hero with a generic performance statistics strip, was rejected. No trustworthy statistics exist in the source. Instead, the hero is a single large automotive composition. The rest of the page progressively explains real service directions, how to begin, an optional mechanical game, practical questions and contact methods. Service choices use an editorial list and one linked diagram instead of identical marketing cards.
+The first idea, a dark hero with a generic performance statistics strip, was rejected. No trustworthy statistics exist in the source. Instead, the hero is a single large automotive composition. The shortened page explains real service directions, offers a useful situation-to-service guide, keeps the mechanical assembly and ends with contact methods. Service choices use an editorial list and one linked diagram instead of identical marketing cards.
 
 Updated palette: graphite petrol `#14232b`, deep studio `#0a151d`, light metal `#eeeee7`, warm paper `#faf8f0`, copper action `#f8976f`, deep selection `#aa421e`. Manrope now carries both body and large sentence-case displays, with medium rather than heavy weight. Locally served fonts include Cyrillic coverage and OFL licenses. Body is approximately 18 px; controls and field labels at least 16 px. Secondary explanatory metadata is 14 px minimum.
 
-Layout: broad left-aligned headline and car scene; alternating two-column service/diagram section; central exploded assembly plus three actual process steps; dashboard and game; FAQ; two-column contacts and demo form. Mobile preserves the sequence and uses horizontal native-scrolling service tabs, then a full-width explanation. No custom cursor or scroll hijacking.
+Layout: broad left-aligned headline and car scene; alternating two-column service/diagram section; a compact service guide; central exploded assembly plus three actual process steps; two-column contacts and demo form. Mobile preserves the sequence and uses horizontal native-scrolling service tabs, then a full-width explanation. Native scrolling is preserved. A thematic inspection cursor is restricted to the non-text diagram area; text, actions and fields retain normal cursors.
 
 ## References and deliberate adaptations
 
@@ -24,6 +24,8 @@ Layout: broad left-aligned headline and car scene; alternating two-column servic
 - [21st Animated Feature Spotlight 3D](https://21st.dev/@ruixen.ui/components/animated-feature-spotlight3d): separate levels of light, object and grounding shadow informed the studio layers and technical panel. Original plain CSS/JS implementation; no React component code copied.
 - [MotionSites 3D scroll lesson](https://motionsites.ai/lesson/build-3d-scroll-animated-website-with-ai): the revision applies the principle of changing viewpoint and lighting with scroll to actual procedural geometry. Text and controls remain native HTML and the page retains normal scrolling.
 
+- [WAI APG select-only combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/): used as the accessibility reference for keyboard navigation, active-descendant focus, cancellation and typeahead. The actual control is an original vanilla implementation over the existing native select.
+
 Reference reading is not a claim to have tested external demos. Source/visual previews were reviewed in the parent task; browser validation concerns our actual pages.
 
 ## Interaction map
@@ -33,23 +35,24 @@ Reference reading is not a claim to have tested external demos. Source/visual pr
 | Hero | Pointer and native scroll change the procedural car's view and light; independent CSS light and floor layers add depth | No bitmap, video, downloaded model or transform applied to the complete canvas. Text and CTA stay fixed. Reduced motion renders a still view. |
 | Services | Hover/touch shifts technical grid and diagram; click or arrow keys chooses a service and highlights relevant area | Controls stay fixed. Native tabs, Arrow keys, Home/End, no pointer-only content. |
 | Approach | Native scroll draws the guide and brings the tyre, brake, spring and hub in from separated edges; pointer changes their overall view slightly | Assembly progress is measured from the actual artwork's entrance, starts at the viewport bottom and is reversible. No pinning. Reduced motion uses a readable still exploded diagram. |
-| Pit stop | Pointer lights the instrument panel; correct answers fill gauge and indicators | Native buttons; all controls stable. Reduced motion preserves immediate state/result. |
-| Questions | Cursor and scroll rotate a decorative wheel; native details disclose answers | Reading text stays fixed; no decorative false buttons. |
+| Service guide | Choose one of four situations; the site shows a useful direction, explanation, highlights the corresponding schematic area and prepares the form | Native buttons work with pointer, touch and keyboard. Result has a described action and a repeat button; motion is not necessary to use it. |
+| Header | Pointer attracts only the inner visual span of “Контакты” by at most 4 px | Link hitbox, background and anchor position stay fixed. Fine pointers only; system reduced motion disables the displacement. |
+| Diagram | A small inspection cursor follows the pointer only over the non-text illustration zone | No pointer interception on text or controls, no touch replacement, disabled for reduced motion. |
 | Contact | Pointer moves a subdued schematic road drawing; fields remain stationary | Touch tap produces bounded feedback. Reduced motion keeps the scene still. |
 
-DOM motion uses one on-demand scroll animation frame, IntersectionObserver to limit work to visible sections, geometry reads before style writes and requestAnimationFrame coalescing. Pointer bounds refresh when the viewport scrolls or resizes. The separate car module owns its render loop, resize handling and visibility limits. `prefers-reduced-motion` always has priority; the footer “Анимация” button lets the user pause motion without persisting any setting. When the OS requests reduced motion, the disabled button explicitly reflects that setting.
+DOM motion uses one on-demand scroll animation frame, IntersectionObserver to limit work to visible sections, geometry reads before style writes and requestAnimationFrame coalescing. Pointer bounds refresh when the viewport scrolls or resizes. The separate car module owns its render loop, resize handling and visibility limits. `prefers-reduced-motion` determines the still view automatically. There is no visible animation control or saved preference.
 
 All interface arrows use a single SVG, initially northeast, rotated only by hover or keyboard focus to point east. Scroll never touches arrow transforms. Native text selection is preserved; background remains transparent on light, dark and CTA surfaces. Different letter colours maintain contrast on each surface.
 
-## Separate game
+## Useful interactive guide
 
-“Ваш пит-стоп” has three fictional situations. Select ходовая, тормоза, then компьютерная диагностика. Correct answers lock input briefly, then advance; wrong answers stay available for another attempt. Completing three rounds shows a result and a replay button. Restart cancels pending progression, including rapid actions. Native buttons support mouse, touch, Tab and Enter. The game explicitly says it is not diagnosis of the visitor's vehicle; real symptoms can have several causes.
-
-The revision fixes browser back/forward-cache restoration during a correct-answer transition: pending work is completed without stealing focus. Animation-frame IDs are cleared when leaving and scheduling resumes on return.
+The “С чего начать?” tool is integrated under the real services. Four situations map to verified service categories: a knock on uneven roads → suspension; engine indicator → computer diagnostics; weak cooling → climate service; scheduled maintenance → technical maintenance. Each result explains what information to prepare for the conversation, highlights the corresponding schematic area and sets the form choice. It does not diagnose an actual vehicle. “Другая ситуация” restores the choices and keyboard focus; immediate actions have no timers or locked state. The old quiz and FAQ sections were removed to shorten the page.
 
 ## Booking demonstration
 
 The form validates name and a Russian phone number, rejecting letters and characters outside standard phone formatting rather than silently stripping arbitrary characters. It shows field-level errors, then explicitly states that no data was sent and no real booking exists. Successful input is cleared immediately. Repeating the form preserves the selected service; the service CTA reopens the form after success. No backend, fetch, analytics, storage, console logging or PII persistence is used. The actual contact actions are phone and email links.
+
+The service field progressively enhances the native select into a select-only combobox. DOM focus remains on the button while Arrow keys, Home/End and typeahead change the active option; Enter, Space or Tab commit, Escape cancels. Pointer choices commit directly. The dark copper-accent popup uses a fixed portal directly under body to avoid clipping by the contact artwork. Placement tracks the visual viewport, sticky header, scrolling and keyboard resize; it opens upward when necessary, keeps visible scrollbar and option padding, scrolls the active option into view and stays synchronized with service tabs, guide results and form reset. Without JavaScript the native control is visible. No technical keyboard help is displayed in the site.
 
 ## Assets
 
@@ -57,4 +60,14 @@ The visible car is created entirely in `car-scene.js` from geometry and material
 
 ## Copying the template
 
-Change company facts and service descriptions in `company.js`, then replace static SEO/brand/address fallback strings in `index.html` and revise `SOURCE.json`. Recheck actual services before retaining any selector option. Keep the game and accessibility behaviors unless the new company's profile makes them misleading. Never copy contact facts or add invented business proof.
+Change company facts and service descriptions in `company.js`, then replace static SEO/brand/address fallback strings in `index.html` and revise `SOURCE.json`. Recheck actual services before retaining any selector option. Keep the useful guide and accessibility behaviors unless the new company's profile makes them misleading. Never copy contact facts or add invented business proof.
+
+## Final voice review
+
+Removed visible animation toggles, input-device hints, redundant hero labels, the upper service link, and the public footer date. The exact service heading is “Внимание каждой детали” with no forced line break. Active service rows have consistent inner padding. Footer lettering has extra right-side room so the final letter remains visible during selection. “Spoki Studio” is a plain text credit with no invented URL. Contact facts, the independent-concept disclosure and truthful demo-form disclosure remain.
+
+
+### Coupe geometry and resilience — voice audit, 4 November 2026
+The hero car is now a compact fastback coupe, inspired by the low bonnet, oval lamps and wide rear shoulders of the [official 911 reference](https://www.porsche.com/international/models/911/carrera-models/911-carrera/). It is an original, unbranded procedural model; no photograph, imported model, video or texture is used. Body panels, conforming lamp lenses, roof arc, intakes, wheels, brake discs and fixed calipers are generated in JavaScript. Static meshes are merged by material, reducing the observed desktop renderer from 239 to 75 draw calls (including the shadow pass). Rendering remains event-driven and pauses offscreen.
+
+The procedural PMREM lighting environment is regenerated after WebGL context restoration. Local UI tests explicitly lost and restored the context on both sites: SVG fallback appeared during loss, and the 3D model and metallic reflections returned after restoration. System prefers-reduced-motion still controls decorative motion; no manual toggle is exposed.
