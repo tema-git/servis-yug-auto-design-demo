@@ -71,3 +71,23 @@ Removed visible animation toggles, input-device hints, redundant hero labels, th
 The hero car is now a compact fastback coupe, inspired by the low bonnet, oval lamps and wide rear shoulders of the [official 911 reference](https://www.porsche.com/international/models/911/carrera-models/911-carrera/). It is an original, unbranded procedural model; no photograph, imported model, video or texture is used. Body panels, conforming lamp lenses, roof arc, intakes, wheels, brake discs and fixed calipers are generated in JavaScript. Static meshes are merged by material, reducing the observed desktop renderer from 239 to 75 draw calls (including the shadow pass). Rendering remains event-driven and pauses offscreen.
 
 The procedural PMREM lighting environment is regenerated after WebGL context restoration. Local UI tests explicitly lost and restored the context on both sites: SVG fallback appeared during loss, and the 3D model and metallic reflections returned after restoration. System prefers-reduced-motion still controls decorative motion; no manual toggle is exposed.
+
+
+## Four-door sports saloon — 4 November 2026
+
+Replaced the short coupé with an original procedural four-door fastback in `car-geometry.js`. The dimensional reference is the Panamera technical sheet: length 5.052 m, body width 1.937 m, height 1.423 m, wheelbase 2.950 m, tracks 1.680/1.651 m. Wheel centres and tyre diameter follow those proportions; overhang split, body surfaces and details are original visual approximations, not factory CAD.
+
+Official visual references (reference only; no photography or manufacturer model is shipped):
+- https://newsroom.porsche.com/dam/jcr:f70ca2d1-f5a5-4d16-a497-82d83f717aae/pag-panamera-td-en.pdf.PDF
+- https://newsroom.porsche.com/en/press-kits/panamera/exterior-design.html
+- https://newsroom.porsche.com/en/2023/products/porsche-panamera-world-premiere-shanghai-34450.html
+
+The new body has a longer cabin, four separate doors, surface-conforming seams, distinct B-pillars and quarter-lights, a panoramic roof, swept four-module lamps, a continuous rear light bar, recessed intake panels, shaped tyre sidewalls, drilled brake discs and ten alloy spokes. Upper and side skin share boundary normals. Side window edging uses separate open curves to avoid folded triangles at sharp ends. No marque badge or affiliation claim is added.
+
+`car-scene.js` preserves the existing cursor/scroll camera response, automatic viewport fitting, local Three.js 0.187.0 dependency, system reduced motion, offscreen suspension, context-loss fallback/recovery and disposal. The procedural studio lighting uses narrower reflections. Static meshes are batched by material: measured 59 draw calls and 319,046 submitted triangles including the shadow pass. There is no continuous idle render loop. The new four-door SVG fallback is embedded in the HTML and the runtime scene.
+
+Visual QA inspected front three-quarter, side, rear three-quarter and front views, desktop 1440 and narrow 390 screenshots, and widths 320/800/1024. No horizontal page overflow was observed. Forms, service selection and interactive blocks were exercised after the change. Tests use browser viewports; physical iOS/Android devices and the live OS reduced-motion setting were not tested.
+
+### Propagation to company copies
+
+Copy `car-geometry.js` and `car-scene.js` together, retaining their relative paths and the hashed geometry import. In each company HTML, update only the `car-scene.js?v=…` query and the inline SVG inside `[data-car-scene]`. Preserve `data-car-scene="service"` or `"wash"`, `company.js`, contacts, brand text, palette and all company-specific content. Do not replace a copy's entire HTML. Three.js/vendor has not changed. Water and foam-game modules are independent and remain untouched. Verify the new module returns HTTP 200 and the host reaches `data-render-state="ready"`; fallback alone does not prove the model loaded.

@@ -40,3 +40,8 @@ Phone, email, address, working hours and service categories come from the public
 ## Replication
 
 Preserve all interaction and accessibility requirements while replacing `company.js`, static HTML fallbacks, provenance and assets. Adapt service options to verified capabilities. Keep demo notices unless a real, authorized booking backend has been integrated and tested.
+
+
+### Updated procedural car
+
+The hero now imports the shared four-door model from `car-geometry.js` through `car-scene.js`. Both files and their cache hashes must travel together when updating a company copy. Preserve the company's HTML/branding and update only the module reference and inline fallback; see the propagation notes in `DESIGN.md`. No new package or remote asset is required.
