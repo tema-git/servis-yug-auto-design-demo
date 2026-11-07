@@ -1,3 +1,5 @@
+> Current model, approved 2026-11-07: Porsche 911 Carrera 4S by Karol Miklas / Lionsharp Studios (CC BY-SA 4.0), with approved runtime adaptations. Transfer all model/decoder assets and retain the attribution. The earlier Panamera design and propagation notes below are historical and superseded. Smaller car scenes and the wash game now reuse the same approved 3D geometry.
+
 # Сервис Юг — автомобиль снова в порядке
 
 ## Product and design intent
@@ -56,7 +58,7 @@ The service field progressively enhances the native select into a select-only co
 
 ## Assets
 
-The visible car is created entirely in `car-scene.js` from geometry and materials, using a local Three.js module. The module includes an original inline SVG fallback. It does not load a raster car, video, texture or external model. It is a conceptual unbranded vehicle, not a photograph or model of company property. Earlier generated artwork is no longer referenced by the page. Technical drawings and icons are original SVG code. Fonts include source URLs and OFL licenses in `assets/fonts/`; the Three.js license accompanies the local vendor files.
+The visible car is the approved 911 Carrera 4S model by Karol Miklas / Lionsharp Studios, CC BY-SA 4.0, hosted locally at `models/reference-911.glb`. Paint, carbon inserts and the wing are adapted in `car-geometry.js`; source and licence details are retained in `models/LICENSE.html`. It does not represent company property. Earlier generated artwork is no longer referenced by the page. Technical drawings and icons are original SVG code. Fonts include source URLs and OFL licenses in `assets/fonts/`; the Three.js license accompanies the local vendor files.
 
 ## Copying the template
 
